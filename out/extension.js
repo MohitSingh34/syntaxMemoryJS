@@ -37,17 +37,16 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 const KNOWN_BUILT_INS = new Set([
     "console", "Math", "Object", "Array", "String", "Number", "JSON",
     "Promise", "document", "window", "localStorage", "sessionStorage",
     "navigator", "this",
 ]);
-// ACTIONABLE: Ye helper function settings se live path nikalega
-function getNotesPath() {
-    return vscode.workspace.getConfiguration("syntaxmemory").get("notesFilePath");
+function getNotesPaths() {
+    return vscode.workspace.getConfiguration("syntaxmemory").get("notesFilePaths") || [];
 }
 function activate(context) {
-    // Storage Structure
     let usageMemory = context.globalState.get("mohitWorkspaceMemory", {});
     let isQueryingBuiltIn = false;
     function getContextPrefix(lineText) {
@@ -121,7 +120,7 @@ function activate(context) {
         },
     }, ".", " ");
     // ==========================================================
-    // ACTION COMMAND: Data save karna
+    // ACTION COMMAND
     // ==========================================================
     const recordCommand = vscode.commands.registerCommand("syntaxmemory.recordUsage", (memoryKey, filePath) => {
         const currentData = usageMemory[memoryKey] || { count: 0, paths: [] };
@@ -156,7 +155,7 @@ function activate(context) {
         outputChannel.show();
     });
     // ==========================================================
-    // HOVER PROVIDER: Notes ko tooltip me dikhana
+    // HOVER PROVIDER: SMART LINKS & MULTI-FILE TITLES
     // ==========================================================
     const hoverProvider = vscode.languages.registerHoverProvider(["javascript", "css", "html", "typescript"], {
         provideHover(document, position) {
@@ -164,43 +163,72 @@ function activate(context) {
             if (!range)
                 return;
             const hoveredWord = document.getText(range);
-            // ACTIONABLE: Live settings se path nikalo
-            const notesPath = getNotesPath();
-            // Agar path empty hai ya set nahi kiya gaya hai
-            if (!notesPath) {
-                const md = new vscode.MarkdownString("⚠️ **Syntax Memory:** Please set your notes file path in VS Code Settings (`syntaxmemory.notesFilePath`).");
+            const notesPaths = getNotesPaths();
+            if (!notesPaths || notesPaths.length === 0) {
+                const md = new vscode.MarkdownString("⚠️ **Syntax Memory:** Please add your notes file paths in VS Code Settings (`syntaxmemory.notesFilePaths`).");
                 return new vscode.Hover(md);
             }
-            // Agar path valid hai, tab file read karo
-            if (fs.existsSync(notesPath)) {
-                const content = fs.readFileSync(notesPath, 'utf-8');
-                const lines = content.split('\n');
-                let isRecording = false;
-                let noteText = "";
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (line === `@de ${hoveredWord}`) {
-                        isRecording = true;
-                        continue;
+            let foundNotes = [];
+            for (const filePath of notesPaths) {
+                if (fs.existsSync(filePath)) {
+                    const content = fs.readFileSync(filePath, 'utf-8');
+                    const lines = content.split('\n');
+                    let isRecording = false;
+                    let currentNoteContent = "";
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line === `@de ${hoveredWord}`) {
+                            isRecording = true;
+                            continue;
+                        }
+                        if (isRecording && line.startsWith("@de "))
+                            break;
+                        if (isRecording) {
+                            currentNoteContent += lines[i] + "\n";
+                        }
                     }
-                    if (isRecording && line.startsWith("@de "))
-                        break;
-                    if (isRecording)
-                        noteText += lines[i] + "\n";
-                }
-                if (noteText.trim() !== "") {
-                    const md = new vscode.MarkdownString();
-                    md.isTrusted = true;
-                    md.appendMarkdown(`### 📝 Notes for \`${hoveredWord}\`\n---\n`);
-                    md.appendCodeblock(noteText.trim(), 'javascript');
-                    const encodedWord = encodeURIComponent(hoveredWord);
-                    md.appendMarkdown(`\n\n[📂 Open Full Notes File (Split Screen)](command:syntaxmemory.openNotes?%22${encodedWord}%22)`);
-                    return new vscode.Hover(md);
+                    if (currentNoteContent.trim() !== "") {
+                        foundNotes.push({ file: filePath, content: currentNoteContent.trim() });
+                    }
                 }
             }
-            else {
-                // Agar file exist nahi karti
-                const md = new vscode.MarkdownString(`⚠️ **Syntax Memory:** Notes file not found at \`${notesPath}\`.`);
+            if (foundNotes.length > 0) {
+                const md = new vscode.MarkdownString();
+                md.isTrusted = true;
+                md.appendMarkdown(`### 📝 Notes for \`${hoveredWord}\`\n---\n`);
+                for (const note of foundNotes) {
+                    const fileName = path.basename(note.file);
+                    // ACTIONABLE: Multi-file Title Header
+                    md.appendMarkdown(`#### 📄 From: \`${fileName}\`\n`);
+                    const lines = note.content.split('\n');
+                    let safeCodeContent = "";
+                    let extractedLinks = [];
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    for (const line of lines) {
+                        // ACTIONABLE: Link Extraction Logic
+                        const links = line.match(urlRegex);
+                        if (links)
+                            extractedLinks.push(...links);
+                        safeCodeContent += line + "\n";
+                    }
+                    // Code safe rahega aur HTML tags properly dikhenge
+                    md.appendCodeblock(safeCodeContent.trim(), 'html');
+                    // Agar us note me links the, toh unhe niche clickable bana kar dikhao
+                    if (extractedLinks.length > 0) {
+                        const uniqueLinks = [...new Set(extractedLinks)]; // Remove duplicates
+                        md.appendMarkdown(`**🔗 Quick Links:**\n`);
+                        uniqueLinks.forEach(link => {
+                            md.appendMarkdown(`* [${link}](${link})\n`);
+                        });
+                    }
+                    md.appendMarkdown(`\n---\n`);
+                }
+                md.appendMarkdown(`**📂 Open Source Files:**\n\n`);
+                foundNotes.forEach((note) => {
+                    const fileName = path.basename(note.file);
+                    const args = encodeURIComponent(JSON.stringify([hoveredWord, note.file]));
+                    md.appendMarkdown(`[✏️ Edit in \`${fileName}\`](command:syntaxmemory.openNotes?${args})  \n`);
+                });
                 return new vscode.Hover(md);
             }
         }
@@ -208,13 +236,10 @@ function activate(context) {
     // ==========================================================
     // SPLIT SCREEN COMMAND
     // ==========================================================
-    const openNotesCmd = vscode.commands.registerCommand("syntaxmemory.openNotes", async (searchWord) => {
-        // ACTIONABLE: Yahan bhi live settings se path nikalo
-        const notesPath = getNotesPath();
-        if (!notesPath)
-            return; // Agar path nahi hai toh command ignore karo
-        const decodedWord = decodeURIComponent(searchWord);
-        const uri = vscode.Uri.file(notesPath); // Update kiya gaya
+    const openNotesCmd = vscode.commands.registerCommand("syntaxmemory.openNotes", async (searchWord, targetPath) => {
+        if (!targetPath || !fs.existsSync(targetPath))
+            return;
+        const uri = vscode.Uri.file(targetPath);
         const doc = await vscode.workspace.openTextDocument(uri);
         const editor = await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.Beside,
@@ -224,7 +249,7 @@ function activate(context) {
         const lines = text.split('\n');
         let targetLine = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === `@de ${decodedWord}`) {
+            if (lines[i].trim() === `@de ${searchWord}`) {
                 targetLine = i;
                 break;
             }

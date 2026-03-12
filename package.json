@@ -24,7 +24,7 @@
             "type": "string"
           },
           "default": [],
-          "description": "List of absolute paths to your personal notes files (Add multiple paths here)"
+          "description": "List of absolute paths to your personal notes files (e.g. /home/mohit/js_notes.txt)"
         }
       }
     },
@@ -58,5 +58,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/MohitSingh34/syntaxMemoryJS.git"
-  }
+  },
+  "icon": "icon.jpg"
 }
