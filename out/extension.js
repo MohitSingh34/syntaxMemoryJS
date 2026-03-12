@@ -155,7 +155,7 @@ function activate(context) {
         outputChannel.show();
     });
     // ==========================================================
-    // HOVER PROVIDER: SMART LINKS & MULTI-FILE TITLES
+    // HOVER PROVIDER: SMART IMAGES & LINKS
     // ==========================================================
     const hoverProvider = vscode.languages.registerHoverProvider(["javascript", "css", "html", "typescript"], {
         provideHover(document, position) {
@@ -195,33 +195,20 @@ function activate(context) {
             if (foundNotes.length > 0) {
                 const md = new vscode.MarkdownString();
                 md.isTrusted = true;
+                md.supportHtml = true;
                 md.appendMarkdown(`### 📝 Notes for \`${hoveredWord}\`\n---\n`);
                 for (const note of foundNotes) {
                     const fileName = path.basename(note.file);
-                    // ACTIONABLE: Multi-file Title Header
-                    md.appendMarkdown(`#### 📄 From: \`${fileName}\`\n`);
-                    const lines = note.content.split('\n');
-                    let safeCodeContent = "";
-                    let extractedLinks = [];
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    for (const line of lines) {
-                        // ACTIONABLE: Link Extraction Logic
-                        const links = line.match(urlRegex);
-                        if (links)
-                            extractedLinks.push(...links);
-                        safeCodeContent += line + "\n";
-                    }
-                    // Code safe rahega aur HTML tags properly dikhenge
-                    md.appendCodeblock(safeCodeContent.trim(), 'html');
-                    // Agar us note me links the, toh unhe niche clickable bana kar dikhao
-                    if (extractedLinks.length > 0) {
-                        const uniqueLinks = [...new Set(extractedLinks)]; // Remove duplicates
-                        md.appendMarkdown(`**🔗 Quick Links:**\n`);
-                        uniqueLinks.forEach(link => {
-                            md.appendMarkdown(`* [${link}](${link})\n`);
-                        });
-                    }
-                    md.appendMarkdown(`\n---\n`);
+                    md.appendMarkdown(`#### 📄 From: \`${fileName}\`\n\n`);
+                    // ACTIONABLE: Image Processor
+                    // Markdown image syntax ![alt](url) ko pakad kar thumbnail HTML + command link me badalna
+                    let processedContent = note.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+                        const args = encodeURIComponent(JSON.stringify([url]));
+                        // width 300 laga diya hai taki hover widget explode na ho jaye
+                        return `<a href="command:syntaxmemory.openImage?${args}" title="Click to open full image in split screen"><img src="${url}" width="200" alt="${alt}"></a>`;
+                    });
+                    md.appendMarkdown(`${processedContent}\n\n`);
+                    md.appendMarkdown(`---\n`);
                 }
                 md.appendMarkdown(`**📂 Open Source Files:**\n\n`);
                 foundNotes.forEach((note) => {
@@ -234,7 +221,7 @@ function activate(context) {
         }
     });
     // ==========================================================
-    // SPLIT SCREEN COMMAND
+    // SPLIT SCREEN COMMAND (For Notes)
     // ==========================================================
     const openNotesCmd = vscode.commands.registerCommand("syntaxmemory.openNotes", async (searchWord, targetPath) => {
         if (!targetPath || !fs.existsSync(targetPath))
@@ -258,7 +245,21 @@ function activate(context) {
         editor.selection = new vscode.Selection(pos, pos);
         editor.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter);
     });
-    context.subscriptions.push(provider, recordCommand, hoverProvider, openNotesCmd, viewMemoryCommand);
+    // ==========================================================
+    // NEW COMMAND: SPLIT SCREEN IMAGE VIEWER
+    // ==========================================================
+    const openImageCmd = vscode.commands.registerCommand("syntaxmemory.openImage", async (imageUrl) => {
+        // VS Code file:/// paths aur normal absolute paths dono accept karta hai open karne ke liye
+        let cleanPath = imageUrl;
+        if (cleanPath.startsWith('file://')) {
+            // file:// hatana parta hai local uri banane ke liye on linux/windows
+            cleanPath = cleanPath.replace('file://', '');
+        }
+        const uri = vscode.Uri.file(cleanPath);
+        // vscode.open natively images render kar sakta hai editor tab me
+        await vscode.commands.executeCommand('vscode.open', uri, vscode.ViewColumn.Beside);
+    });
+    context.subscriptions.push(provider, recordCommand, hoverProvider, openNotesCmd, openImageCmd, viewMemoryCommand);
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
