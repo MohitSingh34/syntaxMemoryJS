@@ -21,4 +21,10 @@ A context-aware intelligent autocompletion tool for JavaScript, TypeScript, CSS,
    @de log
    //Some notes
 
+Delete node_modules and package-lock.json
+then cd into the directory where package.json is located
+npm install
+press F5 to run extension
+
+
    
