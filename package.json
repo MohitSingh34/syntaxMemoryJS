@@ -3,6 +3,7 @@
   "displayName": "SyntaxMemory",
   "description": "Just a memory for using syntaxes",
   "version": "0.0.1",
+  "publisher": "its-not-okay",
   "engines": {
     "vscode": "^1.110.0"
   },
@@ -54,7 +55,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1"
   },
-  "publisher": "its-not-okay",
   "repository": {
     "type": "git",
     "url": "https://github.com/MohitSingh34/syntaxMemoryJS.git"
