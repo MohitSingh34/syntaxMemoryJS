@@ -4,6 +4,13 @@ A context-aware intelligent autocompletion tool for JavaScript, TypeScript, CSS,
 U can see its code on my github and edit as u want
 https://github.com/MohitSingh34/syntaxMemoryJS.git
 
+## Demo
+
+<video width="640" height="360" controls>
+  <source src="ay.webm" type="video/webm">
+  Your browser does not support the video tag.
+</video>
+
 If i right clicks on image on web and copies it and pastes it in md file, it pastes as this
 `![img](image.png)` without ` these marks
 but they not loads in popup.
@@ -11,7 +18,7 @@ for popup u have to give image path like this ![anything](file:///home/user/Proj
 
 or if u want to paste a browser image then first download or save as or copy in actual directory and then copy its path and paste in markdown file
 
-![alt text](image-1.png) ![alt text](2026-03-13_01-00-27.png) ![alt text](2026-03-13_01-01-19.png)
+![alt text](2026-03-13_01-00-27.png) ![alt text](2026-03-13_01-01-19.png)
 
 ## Features
 
