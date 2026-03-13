@@ -14,7 +14,7 @@ https://drive.google.com/file/d/1fQv_4y4V5MaSWkvGQ0Zras-V6pHztizP/view?usp=drive
 If i right clicks on image on web and copies it and pastes it in md file, it pastes as this
 `![img](image.png)` without ` these marks
 but they not loads in popup.
-for popup u have to give image path like this ![anything](file:///home/user/Projects/files/imagecopy.png)
+for popup u have to give image path like this `![anything](file:///home/user/Projects/files/imagecopy.png)`
 
 or if u want to paste a browser image then first download or save as or copy in actual directory and then copy its path and paste in markdown file
 
