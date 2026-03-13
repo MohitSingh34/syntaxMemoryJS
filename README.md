@@ -6,10 +6,7 @@ https://github.com/MohitSingh34/syntaxMemoryJS.git
 
 ## Demo
 
-<video width="640" height="360" controls>
-  <source src="ay.webm" type="video/webm">
-  Your browser does not support the video tag.
-</video>
+[Download / Play demo video](./ay.webm)
 
 If i right clicks on image on web and copies it and pastes it in md file, it pastes as this
 `![img](image.png)` without ` these marks
