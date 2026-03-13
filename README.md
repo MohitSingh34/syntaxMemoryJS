@@ -6,6 +6,9 @@ https://github.com/MohitSingh34/syntaxMemoryJS.git
 
 ## Demo
 
+see in good quality
+https://youtu.be/ZJg5khUn0G0
+https://drive.google.com/file/d/1fQv_4y4V5MaSWkvGQ0Zras-V6pHztizP/view?usp=drive_link
 ![Instructions to use SyntaxMemory](ay_demo_better.gif)
 
 If i right clicks on image on web and copies it and pastes it in md file, it pastes as this
