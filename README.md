@@ -6,7 +6,7 @@ https://github.com/MohitSingh34/syntaxMemoryJS.git
 
 ## Demo
 
-![Instructions to use SyntaxMemory](ay_demo.gif)
+![Instructions to use SyntaxMemory](ay_demo_better.gif)
 
 If i right clicks on image on web and copies it and pastes it in md file, it pastes as this
 `![img](image.png)` without ` these marks
