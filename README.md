@@ -7,7 +7,7 @@ https://github.com/MohitSingh34/syntaxMemoryJS.git
 ## Demo
 
 see in good quality
-https://youtu.be/ZJg5khUn0G0
+`Youtube, Play at 0.7 speed`-https://youtu.be/ZJg5khUn0G0 ---- `Drive`
 https://drive.google.com/file/d/1fQv_4y4V5MaSWkvGQ0Zras-V6pHztizP/view?usp=drive_link
 ![Instructions to use SyntaxMemory](ay_demo_better.gif)
 

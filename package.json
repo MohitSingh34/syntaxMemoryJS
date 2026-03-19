@@ -1,8 +1,8 @@
 {
   "name": "syntaxmemory",
-  "displayName": "SyntaxMemory",
+  "displayName": "Syntax Memory",
   "description": "Just a memory for using syntaxes",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "publisher": "its-not-okay",
   "engines": {
     "vscode": "^1.110.0"
@@ -12,7 +12,9 @@
   ],
   "activationEvents": [
     "onLanguage:javascript",
-    "onLanguage:css"
+    "onLanguage:css",
+    "onLanguage:html",
+    "onLanguage:typescript"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -26,13 +28,21 @@
           },
           "default": [],
           "description": "List of absolute paths to your personal notes files (e.g. /home/mohit/js_notes.txt)"
+        },
+        "syntaxmemory.customBuiltIns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Manually add known built-ins or custom libraries (like Express, gsap) to your permanent memory."
         }
       }
     },
     "commands": [
       {
-        "command": "syntaxmemory.viewMemory",
-        "title": "Syntax Memory: View Usage History"
+        "command": "syntaxmemory.exportMemoryHTML",
+        "title": "Syntax Memory: Open Memory Dashboard in Browser"
       }
     ]
   },
