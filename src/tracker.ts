@@ -1,9 +1,15 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as os from 'os';     // ✨ Naya import
+import * as path from 'path'; // ✨ Naya import
 import { getNotesPaths, getChainAtCursor } from './utils';
 
-const PENDING_JSON_PATH = '/home/mohit/Projects/notes/pending_chatgpt.json';
+// ✨ CROSS-PLATFORM PATH GENERATOR
+// Ye automatically Linux me '/home/mohit/Projects/notes/...' 
+// aur Windows me 'C:\Users\mohit\Projects\notes\...' bana dega
+const PENDING_JSON_PATH = path.join(os.homedir(), 'Projects', 'notes', 'pending_chatgpt.json');
 
+// ... (Baki ka pura code bilkul waisa hi rahega) ...
 export function checkNoteExists(word: string, notesPaths: string[]): boolean {
     for (const rawPath of notesPaths) {
         try {
