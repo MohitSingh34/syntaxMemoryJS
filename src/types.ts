@@ -1,12 +1,12 @@
 export const DEFAULT_BUILT_INS = [
-  "console", "Math", "Object", "Array", "String", "Number", "JSON", 
-  "Promise", "document", "window", "localStorage", "sessionStorage", 
+  "console", "Math", "Object", "Array", "String", "Number", "JSON",
+  "Promise", "document", "window", "localStorage", "sessionStorage",
   "navigator", "this",
 ];
 
 export interface MemoryData {
   count: number;
-  usageDates: string[]; 
+  usageDates: string[];
   paths: string[];
 }
 

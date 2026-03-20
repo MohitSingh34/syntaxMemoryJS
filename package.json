@@ -2,7 +2,7 @@
   "name": "syntaxmemory",
   "displayName": "Syntax Memory",
   "description": "Just a memory for using syntaxes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "its-not-okay",
   "engines": {
     "vscode": "^1.110.0"
