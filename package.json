@@ -36,6 +36,11 @@
           },
           "default": [],
           "description": "Manually add known built-ins or custom libraries (like Express, gsap) to your permanent memory."
+        },
+        "syntaxmemory.enableChatGPTPrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a prompt to queue missing syntax for ChatGPT note generation."
         }
       }
     },
@@ -43,6 +48,10 @@
       {
         "command": "syntaxmemory.exportMemoryHTML",
         "title": "Syntax Memory: Open Memory Dashboard in Browser"
+      },
+      {
+        "command": "syntaxmemory.refreshNotesIndex",
+        "title": "Syntax Memory: Refresh Notes Index"
       }
     ]
   },

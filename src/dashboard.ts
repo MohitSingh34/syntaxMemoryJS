@@ -3,22 +3,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { MemoryData, NoteBlock } from "./types";
-import { getNotesPaths, getNotesForWord } from "./utils";
+// ✨ FIX: Yahan ab utils nahi, indexer use hoga
+import { getNotesFast } from "./indexer";
 
 export function registerDashboardCommand(context: vscode.ExtensionContext) {
     return vscode.commands.registerCommand("syntaxmemory.exportMemoryHTML", () => {
         let usageMemory = context.globalState.get<{ [key: string]: MemoryData }>("mohitWorkspaceMemory", {});
-        const notesPaths = getNotesPaths();
         
-        // Naya structure jo fullChain (jaise "console.log") ko track karega
+        // ✨ FIX: getNotesPaths ki yahan ab koi zaroorat nahi
         const groupedData: { [prefix: string]: { prop: string, count: number, days: number, fullChain: string }[] } = {};
         const injectedNotes: { [fullChain: string]: NoteBlock[] } = {};
         
         for (const [key, data] of Object.entries(usageMemory)) {
-            // key looks like "console|log"
             const [prefix, prop] = key.split("|");
-            
-            // ✨ BUG FIX: Full chain banayenge "console.log" taaki Markdown me sahi heading dhundh sake
             const fullChain = key.replace("|", "."); 
             
             if (!groupedData[prefix]) { 
@@ -29,13 +26,15 @@ export function registerDashboardCommand(context: vscode.ExtensionContext) {
             groupedData[prefix].push({ prop, count: data.count, days: uniqueDays, fullChain });
             
             if (injectedNotes[fullChain] === undefined) {
-                // Ab ye "log" ki jagah "console.log" search karega!
-                const noteBlocks = getNotesForWord(fullChain, notesPaths);
+                // ✨ FIX: Ab yahan fast RAM indexer se data aayega!
+                const noteBlocks = getNotesFast(fullChain);
                 if (noteBlocks.length > 0) {
                   injectedNotes[fullChain] = noteBlocks; 
                 }
             }
         }
+
+        // ... BAAKI KA PURA HTML AUR LOGIC SAME RAHEGA ...
 
         let cardsHtml = "";
         for (const [prefix, items] of Object.entries(groupedData)) {

@@ -1,45 +1,29 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { MemoryData } from './types';
 import { registerDashboardCommand } from './dashboard';
 import { registerProviders } from './providers';
-import { startSyntaxTracker, triggerChatGPTCheck } from './tracker';
+import { startSyntaxTracker } from './tracker';
+import { initIndexer, buildIndex } from './indexer'; // ✨
+import { getNotesPaths } from './utils';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('[Syntax Memory] Extension successfully loaded in Modular Mode!');
+    console.log('[Syntax Memory] Extension successfully loaded!');
+
+    const notesPaths = getNotesPaths();
+    
+    // ✨ Load Notes into RAM on Startup
+    initIndexer(context, notesPaths);
 
     registerProviders(context);
-    
     const exportCommand = registerDashboardCommand(context);
-    context.subscriptions.push(exportCommand);
     
+    // ✨ Start tracking silently in background
     startSyntaxTracker(context);
 
-    const recordCommand = vscode.commands.registerCommand(
-        "syntaxmemory.recordUsage",
-        (memoryKey: string, filePath: string) => {
-            let usageMemory = context.globalState.get<{ [key: string]: MemoryData }>("mohitWorkspaceMemory", {});
-            const currentData = usageMemory[memoryKey] || { count: 0, usageDates: [], paths: [] };
-            currentData.count += 1;
-            
-            const today = new Date().toISOString().split('T')[0];
-            if (!currentData.usageDates) currentData.usageDates = [];
-            if (!currentData.usageDates.includes(today)) currentData.usageDates.push(today);
-            if (!currentData.paths) currentData.paths = [];
-            if (!currentData.paths.includes(filePath)) currentData.paths.push(filePath);
-            
-            usageMemory[memoryKey] = currentData;
-            context.globalState.update("mohitWorkspaceMemory", usageMemory);
-
-            const chain = memoryKey.replace("|", "."); 
-            
-            // Get current language context from active editor
-            const editor = vscode.window.activeTextEditor;
-            const langId = editor ? editor.document.languageId : 'javascript';
-            
-            triggerChatGPTCheck(chain, langId);
-        }
-    );
+    // ✨ Naya Command: Manual Refresh for Index
+    const refreshCmd = vscode.commands.registerCommand("syntaxmemory.refreshNotesIndex", () => {
+        buildIndex(getNotesPaths());
+    });
 
     const openNotesCmd = vscode.commands.registerCommand("syntaxmemory.openNotes", async (searchWord: string, targetPath: string) => {
         if (!targetPath || !fs.existsSync(targetPath)) return;
@@ -63,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand('vscode.open', uri, vscode.ViewColumn.Beside);
     });
 
-    context.subscriptions.push(recordCommand, openNotesCmd, openImageCmd);
+    context.subscriptions.push(exportCommand, refreshCmd, openNotesCmd, openImageCmd);
 }
 
 export function deactivate() {}

@@ -40,32 +40,20 @@ const fs = __importStar(require("fs"));
 const dashboard_1 = require("./dashboard");
 const providers_1 = require("./providers");
 const tracker_1 = require("./tracker");
+const indexer_1 = require("./indexer"); // ✨
+const utils_1 = require("./utils");
 function activate(context) {
-    console.log('[Syntax Memory] Extension successfully loaded in Modular Mode!');
+    console.log('[Syntax Memory] Extension successfully loaded!');
+    const notesPaths = (0, utils_1.getNotesPaths)();
+    // ✨ Load Notes into RAM on Startup
+    (0, indexer_1.initIndexer)(context, notesPaths);
     (0, providers_1.registerProviders)(context);
     const exportCommand = (0, dashboard_1.registerDashboardCommand)(context);
-    context.subscriptions.push(exportCommand);
+    // ✨ Start tracking silently in background
     (0, tracker_1.startSyntaxTracker)(context);
-    const recordCommand = vscode.commands.registerCommand("syntaxmemory.recordUsage", (memoryKey, filePath) => {
-        let usageMemory = context.globalState.get("mohitWorkspaceMemory", {});
-        const currentData = usageMemory[memoryKey] || { count: 0, usageDates: [], paths: [] };
-        currentData.count += 1;
-        const today = new Date().toISOString().split('T')[0];
-        if (!currentData.usageDates)
-            currentData.usageDates = [];
-        if (!currentData.usageDates.includes(today))
-            currentData.usageDates.push(today);
-        if (!currentData.paths)
-            currentData.paths = [];
-        if (!currentData.paths.includes(filePath))
-            currentData.paths.push(filePath);
-        usageMemory[memoryKey] = currentData;
-        context.globalState.update("mohitWorkspaceMemory", usageMemory);
-        const chain = memoryKey.replace("|", ".");
-        // Get current language context from active editor
-        const editor = vscode.window.activeTextEditor;
-        const langId = editor ? editor.document.languageId : 'javascript';
-        (0, tracker_1.triggerChatGPTCheck)(chain, langId);
+    // ✨ Naya Command: Manual Refresh for Index
+    const refreshCmd = vscode.commands.registerCommand("syntaxmemory.refreshNotesIndex", () => {
+        (0, indexer_1.buildIndex)((0, utils_1.getNotesPaths)());
     });
     const openNotesCmd = vscode.commands.registerCommand("syntaxmemory.openNotes", async (searchWord, targetPath) => {
         if (!targetPath || !fs.existsSync(targetPath))
@@ -91,7 +79,7 @@ function activate(context) {
         const uri = vscode.Uri.file(cleanPath);
         await vscode.commands.executeCommand('vscode.open', uri, vscode.ViewColumn.Beside);
     });
-    context.subscriptions.push(recordCommand, openNotesCmd, openImageCmd);
+    context.subscriptions.push(exportCommand, refreshCmd, openNotesCmd, openImageCmd);
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
